@@ -1,138 +1,153 @@
 // components/sections/media/MediaSection.tsx
 "use client";
 
-import {
-    AnimatePresence,
-    LayoutGroup,
-    motion,
-    Variants,
-} from "framer-motion";
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+
+import { RevealText } from "@/components/ui/revealtext";
+
+import { Section } from "../../ui/section";
 
 type MediaItem = { src: string; alt?: string; isVideo?: boolean };
 
-// в тех же файлах, где у вас containerVariants и itemVariants
+interface MediaSectionProps {
+    title?: string;
+    className?: string;
+    items?: MediaItem[];
+}
 
-const containerVariants: Variants = {
-    hidden: { opacity: 0 },
-    show: {
-        opacity: 1,
-        transition: {
-            // общая длительность появления контейнера
-            duration: 1.2,
-            ease: [0.43, 0.13, 0.23, 0.96],
-            // задержка перед появлением первого ребёнка
-            delayChildren: 0.3,
-            // интервал между появлением детей
-            staggerChildren: 0.25,
-        },
-    },
-};
-
-const itemVariants: Variants = {
-    hidden: { y: 40, opacity: 0 },
-    show: {
-        y: 0,
-        opacity: 1,
-        transition: {
-            // чуть более длинная анимация для каждого элемента
-            duration: 0.8,
-            ease: [0.43, 0.13, 0.23, 0.96],
-        },
-    },
-};
-
-
-const mediaItems: MediaItem[] = [
+const defaultItems: MediaItem[] = [
     { src: "/media/anim1.mp4", isVideo: true },
     { src: "/media/images/image.png", alt: "Project still 1" },
     { src: "/media/anim2.mp4", isVideo: true },
 ];
 
-export default function MediaSection() {
+export default function MediaSection({
+                                         title = "Портфолио",
+                                         className,
+                                         items = defaultItems,
+                                     }: MediaSectionProps) {
     const [selected, setSelected] = useState<number | null>(null);
 
     return (
-        <section id="media" className="py-24 bg-background">
-            <div className="max-w-container mx-auto px-4">
-                <LayoutGroup>
-                    {/* Grid of media items */}
-                    <motion.div
-                        className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3"
-                        initial="hidden"
-                        whileInView="show"
-                        viewport={{ once: true, amount: 0.2 }}
-                        variants={containerVariants}
-                        exit="hidden"
-                    >
-                        {mediaItems.map((item, idx) => (
-                            <motion.div
-                                key={item.src}
-                                variants={itemVariants}
-                                className="group overflow-hidden rounded-lg cursor-pointer"
-                                onClick={() => !item.isVideo && setSelected(idx)}
-                                layoutId={!item.isVideo ? item.src : undefined}
-                            >
-                                {item.isVideo ? (
-                                    <video
-                                        src={item.src}
-                                        controls
-                                        autoPlay
-                                        muted
-                                        playsInline
-                                        loop
-                                        preload="metadata"
-                                        className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-                                    />
-                                ) : (
-                                    <div className="relative w-full h-64">
-                                        <Image
-                                            src={item.src}
-                                            alt={item.alt || ""}
-                                            fill
-                                            className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-                                            sizes="(min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw"
-                                            priority={idx < 2}
-                                        />
-                                    </div>
-                                )}
-                            </motion.div>
-                        ))}
-                    </motion.div>
+        <Section className={className}>
+            <div id="media" className="max-w-container mx-auto flex flex-col items-center gap-6 sm:gap-20 px-4">
+                <RevealText
+                    as="h2"
+                    className="max-w-[560px] text-center text-3xl leading-tight font-semibold sm:text-5xl sm:leading-tight"
+                >
+                    {title}
+                </RevealText>
 
-                    {/* Overlay + Lightbox */}
-                    <AnimatePresence>
-                        {selected !== null && (
-                            <motion.div
-                                key="overlay"
-                                className="fixed inset-0 bg-black bg-opacity-60 z-40"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                onClick={() => setSelected(null)}
-                            />
-                        )}
-
-                        {selected !== null && !mediaItems[selected].isVideo && (
-                            <motion.div
-                                key="lightbox"
-                                className="fixed inset-0 flex items-center justify-center z-50 p-4"
-                                layoutId={mediaItems[selected].src}
-                            >
-                                <Image
-                                    src={mediaItems[selected].src}
-                                    alt={mediaItems[selected].alt || ""}
-                                    width={800}
-                                    height={600}
-                                    className="max-w-full max-h-full rounded-lg shadow-lg"
-                                    onClick={() => setSelected(null)}
+                {/* Grid */}
+                <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                    {items.map((item, idx) => (
+                        <button
+                            key={item.src}
+                            type="button"
+                            className="group overflow-hidden rounded-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/40"
+                            onClick={() => setSelected(idx)}
+                        >
+                            {item.isVideo ? (
+                                <video
+                                    src={item.src}
+                                    muted
+                                    playsInline
+                                    preload="metadata"
+                                    className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                                 />
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </LayoutGroup>
+                            ) : (
+                                <div className="relative w-full h-64">
+                                    <Image
+                                        src={item.src}
+                                        alt={item.alt || ""}
+                                        fill
+                                        className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                                        sizes="(min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw"
+                                        priority={idx < 2}
+                                    />
+                                </div>
+                            )}
+                        </button>
+                    ))}
+                </div>
+
+                {/* Lightbox with smooth zoom-in */}
+                {selected !== null && (
+                    <Lightbox
+                        item={items[selected]}
+                        onClose={() => setSelected(null)}
+                    />
+                )}
             </div>
-        </section>
+        </Section>
     );
 }
+
+function Lightbox({
+                      item,
+                      onClose,
+                  }: {
+    item: { src: string; alt?: string; isVideo?: boolean };
+    onClose: () => void;
+}) {
+    const [animateIn, setAnimateIn] = useState(false);
+
+    useEffect(() => {
+        const t = requestAnimationFrame(() => setAnimateIn(true));
+        const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+        document.addEventListener("keydown", onKey);
+        return () => {
+            cancelAnimationFrame(t);
+            document.removeEventListener("keydown", onKey);
+        };
+    }, [onClose]);
+
+    return (
+        // ВЕСЬ экран ловит клик для закрытия
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            onClick={onClose}
+            role="dialog"
+            aria-modal="true"
+        >
+            {/* затемнение */}
+            <div
+                className={`absolute inset-0 bg-black transition-opacity duration-300 ${
+                    animateIn ? "bg-opacity-60" : "bg-opacity-0"
+                }`}
+            />
+
+            {/* контент; стопим всплытие, чтобы не закрывалось при клике по нему */}
+            <div
+                className={[
+                    "relative max-w-[90vw] max-h-[85vh] rounded-lg shadow-xl overflow-hidden",
+                    "transform transition-all duration-300 ease-out",
+                    animateIn ? "opacity-100 scale-100" : "opacity-0 scale-95",
+                ].join(" ")}
+                onClick={(e) => e.stopPropagation()}
+            >
+                {item.isVideo ? (
+                    <video
+                        src={item.src}
+                        controls
+                        autoPlay
+                        playsInline
+                        className="max-w-full max-h-[85vh]"
+                        onClick={(e) => e.stopPropagation()}
+                    />
+                ) : (
+                    <Image
+                        src={item.src}
+                        alt={item.alt || ""}
+                        width={1200}
+                        height={800}
+                        className="max-w-full max-h-[85vh] object-contain"
+                        onClick={(e) => e.stopPropagation()}
+                    />
+                )}
+            </div>
+        </div>
+    );
+}
+
