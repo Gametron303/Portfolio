@@ -1,1 +1,5 @@
-
+{
+  "navbar": { "home": "Home", "about": "About", "projects": "Projects" },
+  "hero":   { "title": "Welcome", "subtitle": "I am a developer" },
+  "footer": { "copyright": "© 2025" }
+}
